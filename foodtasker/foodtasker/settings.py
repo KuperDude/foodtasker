@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'coreapp',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +123,21 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/'
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name = 'dvnzzprr2',
+    api_key = '922788835355279',
+    api_secret = 'CM0wnH0UHFwiqwfAuPOAQTqD8Ho',
+)
+
+# Configure Django app for Firebase
+import django_firebase
+django_firebase.settings(locals())
+
+
