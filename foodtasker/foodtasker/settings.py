@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
+    'bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -122,7 +124,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIR = [
+    os.path.join(BASE_DIR, 'coreapp/static')
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -142,10 +149,29 @@ cloudinary.config(
 )
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.facebook.FacebookOAuth2',
-    # 'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
+    # Facebook
+    'social_core.backends.facebook.FacebookOAuth2',
+    # VK 
+    'social_core.backends.vk.VKOAuth2',
 )
+
+# VK configuration
+SOCIAL_AUTH_VK_OAUTH2_KEY = '51481051'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'C9Z00WV0nO6dykXdK4zL'
+
+SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
+SOCIAL_AUTH_VK_OAUTH2_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, name, email, picture.type(large)'
+}
+
+REST_RRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
+    )
+}
 
 # Facebook configuration
 SOCIAL_AUTH_FACEBOOK_KEY = '601723858309020'
@@ -157,3 +183,24 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email, picture.type(large)'
 }
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'coreapp.social_auth_pipeline.create_user_by_type',  # <--- set the path to the function
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+)
+
+STRIPE_API_KEY = 'sk_test_51M9XgOGreo51K5AKDDGbGaqxAojr6y8r4seJNYHhAsKcbq08sZbX9Zqf9aF4LqnkcmVxbQOUY0FvypLLOLZT9t6R000u4vEWNp'
+
+
+
+
+
+

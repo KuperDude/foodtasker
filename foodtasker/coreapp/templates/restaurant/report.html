@@ -1,0 +1,149 @@
+{% extends 'restaurant/base.html' %}
+
+{% block title %} Report {% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.0.1/chart.min.js" integrity="sha512-tQYZBKe34uzoeOjY9jr3MX7R/mo7n25vnqbnrkskGr4D6YOoPYSpyafUAzQVjV6xAozAqUFIEFsCO4z8mnVBXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock %}
+
+{% block body %} 
+
+<div class='row'>
+    <div class='col-md-8'>
+        <div class="card shadow text-white mb-3 mt-5">
+            <div class="card-header text-center">
+                <h5 class='m-0 font-weight-bold text-black'>This week's revenue</h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <canvas id="revenueChart" height='100'></canvas>
+                </div>
+                  
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+                <script>
+                const ctx = document.getElementById('revenueChart');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: '$ Amount',
+                            data: {{ revenue }},
+                            borderWidth: 1
+                        }]
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <div class='col-md-4'>
+        <div class="card shadow text-white mb-3 mt-5">
+            <div class="card-header text-center">
+                <h5 class='m-0 font-weight-bold text-black'>Top 3 Meals</h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <canvas id="mealsChart" height='100'></canvas>
+                </div>
+                  
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+                <script>
+                const ctx2 = document.getElementById('mealsChart');
+                new Chart(ctx2, {
+                    type: 'pie',
+                    data: {
+                        labels: {{ meal.labels | safe }},
+                        datasets: [{
+                            data: {{ meal.data }}, 
+                        }], 
+                        backgroundColor: [
+                            'rgba(255, 99, 132)', 
+                            'rgba(54, 162, 235)', 
+                            'rgba(255, 205, 86)'
+                        ],
+                        hoverOffset: 4
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class='row'>
+    <div class='col-md-8'>
+        <div class="card shadow text-white mb-3 mt-5">
+            <div class="card-header text-center">
+                <h5 class='m-0 font-weight-bold text-black'>Orders by week</h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <canvas id="ordersChart" height='100'></canvas>
+                </div>
+                  
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+                <script>
+                const ctx1 = document.getElementById('ordersChart');
+                new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Orders',
+                            data: {{ orders }},
+                            borderWidth: 1, 
+                            backgroundColor: [
+                                'rgba(255, 99, 132'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132'
+                            ]
+                        }]
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+    
+    <div class='col-md-4'>
+        <div class="card shadow text-white mb-3 mt-5">
+            <div class="card-header text-center">
+                <h5 class='m-0 font-weight-bold text-black'>Top 3 Drivers</h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <canvas id="driversChart" height='100'></canvas>
+                </div>
+                  
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+                <script>
+                const ctx3 = document.getElementById('driversChart');
+                new Chart(ctx3, {
+                    type: 'pie',
+                    data: {
+                        labels: {{ driver.labels | safe }},
+                        datasets: [{
+                            data: {{ driver.data }}, 
+                        }], 
+                        backgroundColor: [
+                            'rgba(255, 99, 132)', 
+                            'rgba(54, 162, 235)', 
+                            'rgba(255, 205, 86)'
+                        ],
+                        hoverOffset: 4
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
