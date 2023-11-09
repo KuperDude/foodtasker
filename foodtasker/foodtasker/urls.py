@@ -44,7 +44,10 @@ urlpatterns = [
 
     # APIS for CUSTOMERS
     path('api/customer/restaurants/', apis.customer_get_restaurants),
-    path('api/customer/meals/<int:restaurant_id>', apis.customer_get_meals),
+    # path('api/customer/meals/<int:restaurant_id>', apis.customer_get_meals),
+    path('api/customer/meals/', apis.customer_get_meals),
+    path('api/customer/category/', apis.customer_get_category),
+    path('api/customer/ingredients/<int:meal_id>', apis.customer_get_ingredients),
     path('api/customer/order/add/', apis.customer_add_order),
     path('api/customer/order/latest/', apis.customer_get_latest_order),
     path('api/customer/order/latest_status/', apis.customer_get_latest_order_status),

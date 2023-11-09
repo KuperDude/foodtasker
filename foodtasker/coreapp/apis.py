@@ -1,8 +1,8 @@
 import json
 
 from django.http import JsonResponse
-from .models import Restaurant, Meal, Order, OrderDetails
-from .serializers import OrderDriverSerializer, OrderStatusSerializer, RestaurantSerializer, MealSerializer, OrderSerializer
+from .models import Category, Restaurant, Meal, Order, OrderDetails
+from .serializers import OrderDriverSerializer, OrderStatusSerializer, RestaurantSerializer, MealSerializer, OrderSerializer, IngredientSerializer
 
 from django.utils import timezone 
 from oauth2_provider.models import AccessToken
@@ -37,14 +37,43 @@ def customer_get_restaurants(request):
     ).data
     return JsonResponse({'restaurants': restaurants})
 
-def customer_get_meals(request, restaurant_id):
+# def customer_get_meals(request, restaurant_id):
+#     meals = MealSerializer(
+#         Meal.objects.filter(restaurant_id=restaurant_id).order_by('-id'),
+#         many=True, 
+#         context={'request': request}
+#     ).data
+
+#     return JsonResponse({ 'meals': meals })
+
+def customer_get_meals(request):
     meals = MealSerializer(
-        Meal.objects.filter(restaurant_id=restaurant_id).order_by('-id'),
+        Meal.objects.all().order_by('category'),
+        many=True, 
+        context={'request': request}
+    ).data
+
+    print(meals)
+    return JsonResponse({ 'meals': meals })
+
+def customer_get_category(request):
+    meals = MealSerializer(
+        Category.objects.all(),
         many=True, 
         context={'request': request}
     ).data
 
     return JsonResponse({ 'meals': meals })
+
+def customer_get_ingredients(request, meal_id):
+    ingredients = IngredientSerializer(
+        Meal.objects.get(id=meal_id).ingredients,
+        many=True, 
+        context={'request': request}
+    ).data
+
+    print({ 'ingredients': ingredients })
+    return JsonResponse({ 'ingredients': ingredients })
 
 @csrf_exempt
 def customer_add_order(request):
@@ -61,8 +90,15 @@ def customer_add_order(request):
 
     if request.method == "POST":
         # Get access token
+        print("-----------------------------")
+        string = ""
+        for a in request.POST.keys():
+            string = a
+        json_object = json.loads(string)
+        print(json_object["access_token"])
+        print("-----------------------------")
         access_token = AccessToken.objects.get(
-            token=request.POST.get("access_token"), 
+            token=json_object["access_token"],
             expires__gt = timezone.now()
         )
 
@@ -74,16 +110,17 @@ def customer_add_order(request):
             return JsonResponse({'status': 'failed', 'error': 'Your last order must be completed'})
 
         # Check order's address
-        if not request.POST['address']:
+        if not json_object['address']:
             return JsonResponse({'status': 'failed', 'error': 'Address is required'})
 
         # Get order details
-        order_details = json.loads(request.POST['order_details'])
+        # json.loads(request.POST['order_details'])
+        order_details = json_object['order_details']
 
         # Check if meals in only one restaurant and then calculate the order total 
         order_total = 0 
         for meal in order_details:
-            if not Meal.objects.filter(id=meal['meal_id'], restaurant_id=request.POST["restaurant_id"]):
+            if not Meal.objects.filter(id=meal['meal_id'], restaurant_id=json_object["restaurant_id"]):
                 return JsonResponse({'status': 'failed', 'error': 'Meals must be in only one restaurant'})
             else: 
                 order_total += Meal.objects.get(id=meal['meal_id']).price * meal['quantity']
@@ -94,10 +131,10 @@ def customer_add_order(request):
             # Step 1 - Create on Order
             order = Order.objects.create(
                 customer = customer,
-                restaurant_id = request.POST['restaurant_id'], 
+                restaurant_id = json_object['restaurant_id'], 
                 total = order_total,
                 status = Order.COOKING, 
-                address = request.POST['address']
+                address = json_object['address']
             )
 
             # Step 2 - Create Order Details

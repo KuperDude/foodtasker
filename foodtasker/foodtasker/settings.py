@@ -26,8 +26,7 @@ SECRET_KEY = 'django-insecure-gyx&sc+r)wa4e$&k2=-zq8-7%mpiqw4%+l8r!ds^xu*wk%wj9w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['192.168.1.236', 'localhost', '192.168.0.102', '127.0.0.1', '192.168.0.104', '192.168.21.166', '172.20.10.2', '192.168.0.101']
 
 # Application definition
 
@@ -197,10 +196,4 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-STRIPE_API_KEY = 'sk_test_51M9XgOGreo51K5AKDDGbGaqxAojr6y8r4seJNYHhAsKcbq08sZbX9Zqf9aF4LqnkcmVxbQOUY0FvypLLOLZT9t6R000u4vEWNp'
-
-
-
-
-
-
+STRIPE_API_KEY = 'pk_test_51M9XgOGreo51K5AK7p8s8DeYbBn1r8ODjDTt9dN3nyxUrHXvSHn736PuBwYA884clY9fqdA2eFIjDS1KzAEmKvqj005AJ2lILn'

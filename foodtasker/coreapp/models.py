@@ -14,9 +14,9 @@ class Restaurant(models.Model):
         return self.name
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer')
+    user = models.OneToOneField(User, unique=True, on_delete=models.CASCADE, related_name='customer')
     avatar = models.CharField(max_length=255, blank=True)
-    phone = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255, blank=True)
     address = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
@@ -32,8 +32,23 @@ class Driver(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
+class Category(models.Model):
+    name = models.CharField(max_length=255, default='SOME STRING')
+
+    def __str__(self):
+        return self.name
+
+class Ingredient(models.Model):
+    name = models.CharField(max_length=255, default='SOME STRING')
+    image = CloudinaryField('image')
+    
+    def __str__(self):
+        return self.name
+
 class Meal(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='meal')
+    category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE, related_name='meal')
+    ingredients = models.ManyToManyField(Ingredient, null=True, related_name='meal')
     name = models.CharField(max_length=255)
     short_description = models.TextField(max_length=500)
     image = CloudinaryField('image')

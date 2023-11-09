@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Restaurant, Meal, Customer, Driver, OrderDetails, Order
+from .models import Restaurant, Meal, Customer, Driver, OrderDetails, Order, Category, Ingredient
 
 class RestaurantSerializer(serializers.ModelSerializer):
     logo = serializers.SerializerMethodField('get_logo')
@@ -13,9 +13,14 @@ class RestaurantSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = ('id', 'name', 'phone', 'address', 'logo')
 
-   
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = Category 
+        fields = ('id', 'name')
+
 class MealSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField('get_image')
+    category = CategorySerializer()
 
     def get_image(self, restaurant):
         request = self.context.get('request')
@@ -24,7 +29,19 @@ class MealSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Meal
-        fields = ('id', 'name', 'short_description', 'image', 'price')
+        fields = ('id', 'name', 'short_description', 'image', 'price', 'category')
+
+class IngredientSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField('get_image')
+
+    def get_image(self, ingredient):
+        request = self.context.get('request')
+        image_url = ingredient.image.url
+        return request.build_absolute_uri(image_url)
+
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'image')
         
 # ORDER SERIALIZER
 
@@ -75,12 +92,4 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Order 
         fields = ('id', 'status')
-
-
-
-
-
-
-
-
 
