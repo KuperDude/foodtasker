@@ -1,12 +1,14 @@
 import json
+import random
 
 from django.http import JsonResponse
-from .models import Category, Restaurant, Meal, Order, OrderDetails
-from .serializers import OrderDriverSerializer, OrderStatusSerializer, RestaurantSerializer, MealSerializer, OrderSerializer, IngredientSerializer
+from .models import Category, Restaurant, Meal, Order, OrderDetails, Customer, User
+from .serializers import OrderDriverSerializer, OrderInfoSerializer, OrderStatusSerializer, RestaurantSerializer, MealSerializer, OrderSerializer, IngredientSerializer, CustomerSerializer
 
 from django.utils import timezone 
 from oauth2_provider.models import AccessToken
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import EmailMessage
 
 import stripe 
 from foodtasker.settings import STRIPE_API_KEY
@@ -29,6 +31,61 @@ def restaurant_order_notification(request, last_request_time):
 # CUSTOMER 
 # =========
 
+def customer_sendCode(request, mail):
+
+    if User.objects.filter(email=mail):
+        return JsonResponse({'status': 'failed', 'error': 'Уже имеется аккаунт с данной почтой'})
+
+    rand = random.randint(100000, 999999)
+    email = EmailMessage('Your code', f'The number is {rand}', to=[mail])
+    email.send()
+    return JsonResponse({ 'status': 'success', 'code': rand })
+
+def customer_reset_sendCode(request, mail):
+
+    rand = random.randint(100000, 999999)
+    email = EmailMessage('Your code', f'The number is {rand}', to=[mail])
+    email.send()
+    return JsonResponse({ 'status': 'success', 'code': rand })
+
+def customer_reset_password(request, mail, password):
+
+    user = User.objects.get(email=mail)
+
+    user.password = password
+    
+    user.save()
+    
+    return JsonResponse({ 'status': 'success' })
+
+def customer_register(request, username, mail, password):
+
+    user = User.objects.create(
+        username = username,
+        first_name = username,
+        email = mail,
+        password = password,
+    )
+
+    Customer.objects.get_or_create(user_id=user.id)
+
+    return JsonResponse({ 'status': 'success' })
+
+def customer_login(request, mail, password):
+
+    if not User.objects.filter(email = mail, password = password).exists():
+        return JsonResponse({'status': 'failed', 'error': 'Неверная почта или неверный пароль'})
+
+    user = CustomerSerializer(
+        User.objects.get(
+            email=mail,
+            password=password,
+        ),
+        context={'request': request}
+    ).data
+        
+    return JsonResponse({ 'status': 'success', 'user': user })
+
 def customer_get_restaurants(request):
     restaurants = RestaurantSerializer(
         Restaurant.objects.all().order_by('-id'),
@@ -49,16 +106,6 @@ def customer_get_restaurants(request):
 def customer_get_meals(request):
     meals = MealSerializer(
         Meal.objects.all().order_by('category'),
-        many=True, 
-        context={'request': request}
-    ).data
-
-    print(meals)
-    return JsonResponse({ 'meals': meals })
-
-def customer_get_category(request):
-    meals = MealSerializer(
-        Category.objects.all(),
         many=True, 
         context={'request': request}
     ).data
@@ -92,21 +139,29 @@ def customer_add_order(request):
         # Get access token
         print("-----------------------------")
         string = ""
-        for a in request.POST.keys():
-            string = a
+        for i in request.POST.keys():
+            string = i
         json_object = json.loads(string)
         print(json_object["access_token"])
         print("-----------------------------")
-        access_token = AccessToken.objects.get(
-            token=json_object["access_token"],
-            expires__gt = timezone.now()
-        )
 
         # Get customer profile 
-        customer = access_token.user.customer
+        if "@" in json_object["access_token"]:
+            user = User.objects.get(
+                email = json_object["access_token"]
+            )
+            customer = Customer.objects.get(
+                user = user
+            )
+        else:
+            access_token = AccessToken.objects.get(
+                token=json_object["access_token"],
+                expires__gt = timezone.now()
+            )
+            customer = access_token.user.customer
 
         # Check whether customer has any outstanding order
-        if Order.objects.filter(customer=customer).exclude(status=Order.DELIVERED):
+        if Order.objects.filter(customer=customer).exclude(status=Order.DELIVERED).exclude(status=Order.CANCELLED):
             return JsonResponse({'status': 'failed', 'error': 'Your last order must be completed'})
 
         # Check order's address
@@ -121,9 +176,13 @@ def customer_add_order(request):
         order_total = 0 
         for meal in order_details:
             if not Meal.objects.filter(id=meal['meal_id'], restaurant_id=json_object["restaurant_id"]):
+                print(json_object["restaurant_id"])
                 return JsonResponse({'status': 'failed', 'error': 'Meals must be in only one restaurant'})
             else: 
                 order_total += Meal.objects.get(id=meal['meal_id']).price * meal['quantity']
+
+        #  DELIVERY
+        order_total += 150
 
         #  CREATE ORDER
         if len(order_details) > 0:
@@ -131,9 +190,9 @@ def customer_add_order(request):
             # Step 1 - Create on Order
             order = Order.objects.create(
                 customer = customer,
-                restaurant_id = json_object['restaurant_id'], 
+                restaurant_id = json_object["restaurant_id"], 
                 total = order_total,
-                status = Order.COOKING, 
+                status = Order.PROCESSING, 
                 address = json_object['address']
             )
 
@@ -150,6 +209,38 @@ def customer_add_order(request):
 
     return JsonResponse({})
 
+def customer_get_orders(request):
+    """
+        params:
+            1. access_token 
+        return:
+            {JSON Data with all details of an order}
+    """
+
+    if "@" in request.GET.get("access_token"):
+        user = User.objects.get(
+            email = request.GET.get("access_token")
+        )
+        customer = Customer.objects.get(
+            user = user
+        )
+    else:
+        access_token = AccessToken.objects.get(
+            token=request.GET.get("access_token"),
+            expires__gt = timezone.now()
+        )
+        customer = access_token.user.customer
+
+    orders = OrderInfoSerializer(
+        Order.objects.filter(customer=customer).order_by('-created_at'),
+        many=True, 
+        context={'request': request}
+    ).data
+
+    return JsonResponse({
+        'orders': orders
+    })
+
 def customer_get_latest_order(request):
     """
         params:
@@ -158,12 +249,19 @@ def customer_get_latest_order(request):
             {JSON Data with all details of an order}
     """
 
-    access_token = AccessToken.objects.get(
-        token=request.GET.get("access_token"), 
-        expires__gt = timezone.now()
-    )
-
-    customer = access_token.user.customer 
+    if "@" in request.GET.get("access_token"):
+        user = User.objects.get(
+            email = request.GET.get("access_token")
+        )
+        customer = Customer.objects.get(
+            user = user
+        )
+    else:
+        access_token = AccessToken.objects.get(
+            token=request.GET.get("access_token"),
+            expires__gt = timezone.now()
+        )
+        customer = access_token.user.customer
 
     order = OrderSerializer(
         Order.objects.filter(customer=customer).last()
@@ -181,12 +279,19 @@ def customer_get_latest_order_status(request):
             {JSON Data with all details of an order}
     """
 
-    access_token = AccessToken.objects.get(
-        token=request.GET.get("access_token"), 
-        expires__gt = timezone.now()
-    )
-
-    customer = access_token.user.customer 
+    if "@" in request.GET.get("access_token"):
+        user = User.objects.get(
+            email = request.GET.get("access_token")
+        )
+        customer = Customer.objects.get(
+            user = user
+        )
+    else:
+        access_token = AccessToken.objects.get(
+            token=request.GET.get("access_token"),
+            expires__gt = timezone.now()
+        )
+        customer = access_token.user.customer 
 
     order_status = OrderStatusSerializer(
         Order.objects.filter(customer=customer).last()

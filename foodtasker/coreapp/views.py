@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from .models import Meal, Order, Driver
 from django.db.models import Sum, Count, Case, When
+from django.core.mail import EmailMessage
 
 
 def home(request):
@@ -15,30 +16,57 @@ def home(request):
 def restaurant_home(request):
     return render(request, 'restaurant/home.html', {})
 
+# def restaurant_sign_up(request):
+#     user_form = UserForm()
+#     restaurant_form = RestaurantForm()
+
+#     if request.method == "POST":
+#         user_form = UserForm(request.POST)
+#         restaurant_form = RestaurantForm(request.POST, request.FILES)
+
+#         if user_form.is_valid() and restaurant_form.is_valid():
+#             new_user = User.objects.create_user(**user_form.cleaned_data)
+#             new_restaurant = restaurant_form.save(commit=False)
+#             new_restaurant.user = new_user
+#             new_restaurant.save()
+        
+#             login(request, authenticate(
+#                 username = user_form.cleaned_data['username'],
+#                 password = user_form.cleaned_data['password'],
+#             ))
+
+#             return redirect(restaurant_home)
+
+#     return render(request, 'restaurant/sign_up.html', { 
+#         'user_form': user_form,
+#         'restaurant_form': restaurant_form
+#     })
+
 def restaurant_sign_up(request):
     user_form = UserForm()
-    restaurant_form = RestaurantForm()
+    # restaurant_form = RestaurantForm()
 
     if request.method == "POST":
         user_form = UserForm(request.POST)
-        restaurant_form = RestaurantForm(request.POST, request.FILES)
+        # restaurant_form = RestaurantForm(request.POST, request.FILES)
 
-        if user_form.is_valid() and restaurant_form.is_valid():
+        if user_form.is_valid():
             new_user = User.objects.create_user(**user_form.cleaned_data)
-            new_restaurant = restaurant_form.save(commit=False)
-            new_restaurant.user = new_user
-            new_restaurant.save()
         
-            login(request, authenticate(
-                username = user_form.cleaned_data['username'],
-                password = user_form.cleaned_data['password'],
-            ))
+            email = EmailMessage('Subject', 'Body', to=[new_user.email])
+            email.send()
+            # send_mail(
+            #     subject=_("Please conform registrations"),
+            #     message=_("follow this link"),
+            #     from_email="CucumberKiller20@yandex.ru",
+            #     recipient_list=[new_user.email, ]
+            # )
 
             return redirect(restaurant_home)
 
     return render(request, 'restaurant/sign_up.html', { 
         'user_form': user_form,
-        'restaurant_form': restaurant_form
+        # 'restaurant_form': restaurant_form
     })
 
 @login_required(login_url='/restaurant/sign_in/')

@@ -3,7 +3,7 @@ from .models import Customer, Driver, User
 def create_user_by_type(backend, user, response, *args, **kwargs):
     request = backend.strategy.request_data()
 
-    if backend.name == 'vk-oauth2':
+    if backend.name == 'vk-oauth2' or backend.name == 'google-oauth2':
         avatar = response.get('photo', '')
 
         # print(user.id, avatar)

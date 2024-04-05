@@ -41,18 +41,23 @@ urlpatterns = [
     # /convert-token (sign-in/sign-up), /revoke-token (sign-out)
     path('api/social/', include('rest_framework_social_oauth2.urls')),
     path('api/restaurant/order/notification/<last_request_time>/', apis.restaurant_order_notification),
+    path('api/customer/register/<username>/<mail>/<password>/', apis.customer_register),
+    path('api/customer/login/<mail>/<password>/', apis.customer_login),
 
     # APIS for CUSTOMERS
     path('api/customer/restaurants/', apis.customer_get_restaurants),
     # path('api/customer/meals/<int:restaurant_id>', apis.customer_get_meals),
     path('api/customer/meals/', apis.customer_get_meals),
-    path('api/customer/category/', apis.customer_get_category),
     path('api/customer/ingredients/<int:meal_id>', apis.customer_get_ingredients),
     path('api/customer/order/add/', apis.customer_add_order),
+    path('api/customer/orders/', apis.customer_get_orders),
     path('api/customer/order/latest/', apis.customer_get_latest_order),
     path('api/customer/order/latest_status/', apis.customer_get_latest_order_status),
     path('api/customer/driver/location/', apis.customer_get_driver_location),
     path('api/customer/payment_intent/', apis.create_payment_intent),
+    path('api/customer/sendCode/<mail>/', apis.customer_sendCode),
+    path('api/customer/resetPasswordSendCode/<mail>/', apis.customer_reset_sendCode),
+    path('api/customer/resetPassword/<mail>/<password>/', apis.customer_reset_password),
 
     # APIS for DRIVERS
     path('api/driver/order/ready/', apis.driver_get_ready_orders),

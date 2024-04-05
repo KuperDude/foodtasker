@@ -58,16 +58,20 @@ class Meal(models.Model):
         return self.name 
 
 class Order(models.Model):
-    COOKING = 1
-    READY = 2
-    ONTHEWAY = 3
-    DELIVERED = 4
+    CANCELLED = 0
+    PROCESSING = 1
+    COOKING = 2
+    READY = 3
+    ONTHEWAY = 4
+    DELIVERED = 5
 
     STATUS_CHOICES = (
-        (COOKING, 'Cooking'), 
-        (READY, 'Ready'), 
-        (ONTHEWAY, 'On the way'), 
-        (DELIVERED, 'Delivered'), 
+        (CANCELLED, 'Отменен'),
+        (PROCESSING, 'В обработке'),
+        (COOKING, 'Готовиться'), 
+        (READY, 'Готов к отправке'), 
+        (ONTHEWAY, 'В пути'), 
+        (DELIVERED, 'Доставлен'), 
     )
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Restaurant, Meal, Customer, Driver, OrderDetails, Order, Category, Ingredient
+from .models import Restaurant, Meal, Customer, Driver, OrderDetails, Order, Category, Ingredient, User
 
 class RestaurantSerializer(serializers.ModelSerializer):
     logo = serializers.SerializerMethodField('get_logo')
@@ -42,6 +42,12 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'image')
+
+class CustomerSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ('id', 'username',)
         
 # ORDER SERIALIZER
 
@@ -85,6 +91,14 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta: 
         model = Order
         fields = ('id', 'customer', 'restaurant', 'driver', 'order_details', 'total', 'status', 'address')
+
+class OrderInfoSerializer(serializers.ModelSerializer):
+    customer = OrderCustomerSerializer()
+    status = serializers.ReadOnlyField(source='get_status_display')
+
+    class Meta: 
+        model = Order
+        fields = ('id', 'customer', 'created_at', 'restaurant', 'total', 'status')
 
 class OrderStatusSerializer(serializers.ModelSerializer):
     status = serializers.ReadOnlyField(source='get_status_display')

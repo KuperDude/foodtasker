@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-gyx&sc+r)wa4e$&k2=-zq8-7%mpiqw4%+l8r!ds^xu*wk%wj9w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.236', 'localhost', '192.168.0.102', '127.0.0.1', '192.168.0.104', '192.168.21.166', '172.20.10.2', '192.168.0.101']
+ALLOWED_HOSTS = ['192.168.1.236', '192.168.1.194', 'localhost', '192.168.0.101', '127.0.0.1', '192.168.0.104', '192.168.21.166', '172.20.10.2', '192.168.0.101']
 
 # Application definition
 
@@ -154,6 +154,8 @@ AUTHENTICATION_BACKENDS = (
     'social_core.backends.facebook.FacebookOAuth2',
     # VK 
     'social_core.backends.vk.VKOAuth2',
+    # Google 
+    'social_core.backends.google.GoogleOAuth2',
 )
 
 # VK configuration
@@ -171,6 +173,10 @@ REST_RRAMEWORK = {
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
     )
 }
+
+# Google configuration
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '1066626992458-al6nbstu263fiqhsr0q67eq9cfd16rjr.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 # Facebook configuration
 SOCIAL_AUTH_FACEBOOK_KEY = '601723858309020'
@@ -197,3 +203,14 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 STRIPE_API_KEY = 'pk_test_51M9XgOGreo51K5AK7p8s8DeYbBn1r8ODjDTt9dN3nyxUrHXvSHn736PuBwYA884clY9fqdA2eFIjDS1KzAEmKvqj005AJ2lILn'
+
+# mail sender
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+
+EMAIL_HOST_USER = 'CucumberKiller20@yandex.ru'
+EMAIL_HOST_PASSWORD = 'stukwpdkzkcamyim'
+DEFAULT_FROM_EMAIL = 'CucumberKiller20@yandex.ru'
