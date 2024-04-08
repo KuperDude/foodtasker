@@ -5,9 +5,9 @@ from django.utils import timezone
 
 class Restaurant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='restaurant')
-    name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name='Название')
+    phone = models.CharField(max_length=255, verbose_name='Телефон')
+    address = models.CharField(max_length=255, verbose_name='Адрес')
     logo = CloudinaryField('image')
 
     def __str__(self):
@@ -47,12 +47,12 @@ class Ingredient(models.Model):
 
 class Meal(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='meal')
-    category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE, related_name='meal')
-    ingredients = models.ManyToManyField(Ingredient, null=True, related_name='meal')
-    name = models.CharField(max_length=255)
-    short_description = models.TextField(max_length=500)
+    category = models.ForeignKey(Category, null=True, on_delete=models.CASCADE, related_name='meal', verbose_name="Категория")
+    ingredients = models.ManyToManyField(Ingredient, null=True, related_name='meal', verbose_name="Ингредиенты")
+    name = models.CharField(max_length=255, verbose_name="Название")
+    short_description = models.TextField(max_length=500, verbose_name="Описание")
     image = CloudinaryField('image')
-    price = models.IntegerField(default=0)
+    price = models.IntegerField(default=0, verbose_name="Цена")
 
     def __str__(self):
         return self.name 

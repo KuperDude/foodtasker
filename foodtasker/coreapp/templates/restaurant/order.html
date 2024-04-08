@@ -1,25 +1,25 @@
 {% extends 'restaurant/base.html' %}
+{% load bootstrap4 %}
 
-{% block title %} Orders {% endblock %}
+{% block title %} Заказы {% endblock %}
 
 {% block body %} 
 <div class='row'>
     <div class='col-md-10 offset-md-1'>
         <div class="card shadow text-white mb-3 mt-5">
             <div class="card-header text-center">
-                <h5 class='m-0 font-weight-bold text-black'>Orders</h5>
+                <h5 class='m-0 font-weight-bold text-black'>Заказы</h5>
             </div>
             <div class="card-body">
                 <table class="table table-striped table-hover table-bordered">
                     <thead>
                       <tr>
                         <th scope="col">ID</th>
-                        <th scope="col">Details</th>
-                        <th scope="col">Customer</th>
-                        <th scope="col">Driver</th>
-                        <th scope="col">Total</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Action</th>
+                        <th scope="col">Заказ</th>
+                        <th scope="col">Покупатель</th>
+                        <th scope="col">Итог</th>
+                        <th scope="col">Статус</th>
+                        <th scope="col">Действие</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -29,20 +29,25 @@
                                 <td>
                                     <ul>
                                         {% for od in order.order_details.all %}
-                                            <li>{{ od.meal.name }} : ${{ od.meal.price }} x {{ od.quantity }} = ${{ od.sub_total }}</li>
+                                            <li>{{ od.meal.name }} : {{ od.meal.price }}₽ x {{ od.quantity }} = {{ od.sub_total }}₽</li>
                                         {% endfor %}
+                                        <li>Доставка : 150₽</li>
                                     </ul>
                                 </td>
                                 <td>{{ order.customer }}</td>
-                                <td>{{ order.driver }}</td>
-                                <td class='text-right'>${{ order.total }}</td>
+                                <td class='text-right'>
+                                    <font color="green">{{ order.total }}₽</font>              
+                                </td>
                                 <td>{{ order.get_status_display }}</td>
                                 <td>
-                                    {% if order.status == 1 %}
+                                    {% if order.status != 0 and order.status != 5 %}
                                         <form action="" method='post'>
                                             {% csrf_token %}
+
+                                            {% bootstrap_form category_form %}
+
                                             <input name='id' value='{{ order.id }}' hidden>
-                                            <button class="btn btn-black btn-sm">Ready</button>
+                                            <button class="btn btn-black btn-sm">Готово</button>
                                         </form>
                                     {% endif %}
                                 </td>

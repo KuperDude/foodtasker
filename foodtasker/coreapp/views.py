@@ -1,12 +1,21 @@
 from django.shortcuts import render
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm
+from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm, CategoryForm, LoginUserForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from .models import Meal, Order, Driver
+
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+)
+
+from .models import Meal, Order, Customer
 from django.db.models import Sum, Count, Case, When
 from django.core.mail import EmailMessage
+
+class LoginUser(LoginView):
+    form_class = LoginUserForm
 
 
 def home(request):
@@ -15,32 +24,6 @@ def home(request):
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_home(request):
     return render(request, 'restaurant/home.html', {})
-
-# def restaurant_sign_up(request):
-#     user_form = UserForm()
-#     restaurant_form = RestaurantForm()
-
-#     if request.method == "POST":
-#         user_form = UserForm(request.POST)
-#         restaurant_form = RestaurantForm(request.POST, request.FILES)
-
-#         if user_form.is_valid() and restaurant_form.is_valid():
-#             new_user = User.objects.create_user(**user_form.cleaned_data)
-#             new_restaurant = restaurant_form.save(commit=False)
-#             new_restaurant.user = new_user
-#             new_restaurant.save()
-        
-#             login(request, authenticate(
-#                 username = user_form.cleaned_data['username'],
-#                 password = user_form.cleaned_data['password'],
-#             ))
-
-#             return redirect(restaurant_home)
-
-#     return render(request, 'restaurant/sign_up.html', { 
-#         'user_form': user_form,
-#         'restaurant_form': restaurant_form
-#     })
 
 def restaurant_sign_up(request):
     user_form = UserForm()
@@ -132,13 +115,18 @@ def restaurant_order(request):
     if request.method == "POST":
         order = Order.objects.get(id=request.POST['id'])
 
-        if order.status == Order.COOKING:
-            order.status = Order.READY
+        category_form = CategoryForm(request.POST, request.FILES, instance=order)
+
+        if category_form.is_valid():
+            retOrder = category_form.save(commit=False)
+            order.status = retOrder.status
             order.save()
 
     orders = Order.objects.filter(restaurant = request.user.restaurant).order_by('-id')
+    category_form = CategoryForm()
     return render(request, 'restaurant/order.html', {
-        'orders': orders
+        'orders': orders,
+        'category_form': category_form
     })
 
 @login_required(login_url='/restaurant/sign_in/')
@@ -175,8 +163,8 @@ def restaurant_report(request):
         'data': [meal.total_order or 0 for meal in top3_meals]
     }
 
-    # Getting Top 3 Drivers 
-    top3_drivers = Driver.objects.annotate(
+    # Getting Top 3 Customers 
+    top3_customers = Customer.objects.annotate(
         total_order = Count(
             Case(
                 When(order__restaurant = request.user.restaurant, then = 1)
@@ -184,9 +172,9 @@ def restaurant_report(request):
         )
     ).order_by('-total_order')[:3]
 
-    driver = {
-        'labels': [d.user.get_full_name() for d in top3_drivers], 
-        'data': [d.total_order for d in top3_drivers]
+    customer = {
+        'labels': [d.user.get_full_name() for d in top3_customers], 
+        'data': [d.total_order for d in top3_customers]
     }
 
 
@@ -194,5 +182,5 @@ def restaurant_report(request):
         'revenue': revenue, 
         'orders': orders, 
         'meal': meal, 
-        'driver': driver, 
+        'customer': customer, 
     })

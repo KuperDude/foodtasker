@@ -1,6 +1,6 @@
 {% extends 'restaurant/base.html' %}
 
-{% block title %} Report {% endblock %}
+{% block title %} Статистика {% endblock %}
 
 {% block script %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.0.1/chart.min.js" integrity="sha512-tQYZBKe34uzoeOjY9jr3MX7R/mo7n25vnqbnrkskGr4D6YOoPYSpyafUAzQVjV6xAozAqUFIEFsCO4z8mnVBXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -12,7 +12,7 @@
     <div class='col-md-8'>
         <div class="card shadow text-white mb-3 mt-5">
             <div class="card-header text-center">
-                <h5 class='m-0 font-weight-bold text-black'>This week's revenue</h5>
+                <h5 class='m-0 font-weight-bold text-black'>Недельный доход</h5>
             </div>
             <div class="card-body">
                 <div>
@@ -28,7 +28,7 @@
                     data: {
                         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                         datasets: [{
-                            label: '$ Amount',
+                            label: 'Доход ₽',
                             data: {{ revenue }},
                             borderWidth: 1
                         }]
@@ -42,7 +42,7 @@
     <div class='col-md-4'>
         <div class="card shadow text-white mb-3 mt-5">
             <div class="card-header text-center">
-                <h5 class='m-0 font-weight-bold text-black'>Top 3 Meals</h5>
+                <h5 class='m-0 font-weight-bold text-black'>Топ 3 Блюда</h5>
             </div>
             <div class="card-body">
                 <div>
@@ -78,7 +78,7 @@
     <div class='col-md-8'>
         <div class="card shadow text-white mb-3 mt-5">
             <div class="card-header text-center">
-                <h5 class='m-0 font-weight-bold text-black'>Orders by week</h5>
+                <h5 class='m-0 font-weight-bold text-black'>Количество заказов</h5>
             </div>
             <div class="card-body">
                 <div>
@@ -94,7 +94,7 @@
                     data: {
                         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                         datasets: [{
-                            label: 'Orders',
+                            label: 'Заказы',
                             data: {{ orders }},
                             borderWidth: 1, 
                             backgroundColor: [
@@ -114,23 +114,23 @@
     <div class='col-md-4'>
         <div class="card shadow text-white mb-3 mt-5">
             <div class="card-header text-center">
-                <h5 class='m-0 font-weight-bold text-black'>Top 3 Drivers</h5>
+                <h5 class='m-0 font-weight-bold text-black'>Топ 3 Покупателей</h5>
             </div>
             <div class="card-body">
                 <div>
-                    <canvas id="driversChart" height='100'></canvas>
+                    <canvas id="customersChart" height='100'></canvas>
                 </div>
                   
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 
                 <script>
-                const ctx3 = document.getElementById('driversChart');
+                const ctx3 = document.getElementById('customersChart');
                 new Chart(ctx3, {
                     type: 'pie',
                     data: {
-                        labels: {{ driver.labels | safe }},
+                        labels: {{ customer.labels | safe }},
                         datasets: [{
-                            data: {{ driver.data }}, 
+                            data: {{ customer.data }}, 
                         }], 
                         backgroundColor: [
                             'rgba(255, 99, 132)', 

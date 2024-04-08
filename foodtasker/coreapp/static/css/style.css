@@ -70,7 +70,9 @@
 
 /* CONTENT */
 .content {
+    position: absolute;
     padding: 0 40px;
+    left: 170px;
 }
 
 .content .panel {

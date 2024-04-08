@@ -1,27 +1,29 @@
 {% extends 'restaurant/base.html' %}
 
-{% block title %} Meals {% endblock %}
+{% block title %} Блюда {% endblock %}
 
 {% block body %} 
     <div class='row'>
         <div class='col-md-10 offset-md-1'>
             <div class="card shadow text-white mb-3 mt-5">
                 <div class="card-header text-center">
-                    <h5 class='m-0 font-weight-bold text-black'>Meals</h5>
+                    <h5 class='m-0 font-weight-bold text-black'>Блюда</h5>
                 </div>
                 <div class="card-body">
                     <span class="float-right mb-3">
-                        <a href="{% url 'restaurant_add_meal' %}" class='btn btn-black'>Add Meal</a>
+                        <a href="{% url 'restaurant_add_meal' %}" class='btn btn-black'>Добавить Блюдо</a>
                     </span>
 
                     <table class="table table-striped table-hover table-bordered">
                         <thead>
                           <tr>
                             <th scope="col">ID</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Desciption</th>
-                            <th scope="col">Price</th>
-                            <th scope="col">Image</th>
+                            <th scope="col">Название</th>
+                            <th scope="col">Описание</th>
+                            <th scope="col">Ингредиенты</th>
+                            <th scope="col">Категория</th>
+                            <th scope="col">Цена</th>
+                            <th scope="col">Изображение</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -32,7 +34,17 @@
                                         <a href="{% url 'restaurant_edit_meal' meal.id %}">{{ meal.name }}</a>
                                     </td>
                                     <td>{{ meal.short_description }}</td>
-                                    <td class='text-right'>${{ meal.price }}</td>
+                                    <td>
+                                        <ul>
+                                            {% for ing in meal.ingredients.all %}
+                                                <li>{{ ing.name }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td>{{ meal.category.name }}</td>
+                                    <td class='text-right'>
+                                        <font color="green">{{ meal.price }}₽</font>
+                                    </td>
                                     <td class='text-center'>
                                         <img src="{{ meal.image.url }}" class='rounded' width='50' height='50' alt="">
                                     </td>

@@ -38,24 +38,24 @@
 <hr>
 
 <div class='list-group'>
-    <span class='text-uppercase'>Dashboard</span>
+    <span class='text-uppercase'>ДАННЫЕ</span>
     <a href="{% url 'restaurant_meal' %}" 
-        class="list-group-item {% if request.path == restaurant_meal_url %} active {% endif %}">Meals</a>
+        class="list-group-item {% if request.path == restaurant_meal_url %} active {% endif %}">Блюда</a>
     <a href="{% url 'restaurant_order' %}" 
         class="list-group-item {% if request.path == restaurant_order_url %} active {% endif %}">
-        Orders
+        Заказы
         <span class="badge badge-warning ml-2"></span>
     </a>
     <a href="{% url 'restaurant_report' %}" 
-        class="list-group-item {% if request.path == restaurant_report_url %} active {% endif %}">Report</a>
+        class="list-group-item {% if request.path == restaurant_report_url %} active {% endif %}">Статистика</a>
 
-    <span class="text-uppercase">Profile</span>
+    <span class="text-uppercase">ПРОФИЛЬ</span>
     <a href="{% url 'restaurant_account' %}" 
-        class="list-group-item {% if request.path == restaurant_account_url %} active {% endif %}">Account</a>
+        class="list-group-item {% if request.path == restaurant_account_url %} active {% endif %}">Аккаунт</a>
 </div>
 
 <div class="text-center my-3 mx-3">
-    <a href="{% url 'restaurant_sign_out' %}" class='btn btn-warning btn-block'>Logout</a>
+    <a href="{% url 'restaurant_sign_out' %}" class='btn btn-warning btn-block'>Выйти</a>
 </div>
 
 {% endblock %}
