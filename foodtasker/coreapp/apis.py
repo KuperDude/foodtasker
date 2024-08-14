@@ -10,11 +10,6 @@ from oauth2_provider.models import AccessToken
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMessage
 
-import stripe 
-from foodtasker.settings import STRIPE_API_KEY
-
-stripe.api_key = STRIPE_API_KEY
-
 # =========
 # RESTAURANT
 # =========
@@ -71,6 +66,30 @@ def customer_register(request, username, mail, password):
 
     return JsonResponse({ 'status': 'success' })
 
+def customer_delete_account(request):
+
+    if "@" in request.GET.get("access_token"):
+        user = User.objects.get(
+            email = request.GET.get("access_token")
+        )
+        customer = Customer.objects.get(
+            user = user
+        )
+    else:
+        access_token = AccessToken.objects.get(
+            token=request.GET.get("access_token"),
+            expires__gt = timezone.now()
+        )
+        customer = access_token.user.customer
+
+    for order in Order.objects.filter(customer = customer):
+        OrderDetails.objects.filter(order = order).delete()
+    Order.objects.filter(customer = customer).delete()
+    customer.user.delete()
+    customer.delete()
+
+    return JsonResponse({ 'status': 'success' })
+
 def customer_login(request, mail, password):
 
     if not User.objects.filter(email = mail, password = password).exists():
@@ -93,15 +112,6 @@ def customer_get_restaurants(request):
         context={'request': request}
     ).data
     return JsonResponse({'restaurants': restaurants})
-
-# def customer_get_meals(request, restaurant_id):
-#     meals = MealSerializer(
-#         Meal.objects.filter(restaurant_id=restaurant_id).order_by('-id'),
-#         many=True, 
-#         context={'request': request}
-#     ).data
-
-#     return JsonResponse({ 'meals': meals })
 
 def customer_get_meals(request):
     meals = MealSerializer(
@@ -137,13 +147,10 @@ def customer_add_order(request):
 
     if request.method == "POST":
         # Get access token
-        print("-----------------------------")
         string = ""
         for i in request.POST.keys():
             string = i
         json_object = json.loads(string)
-        print(json_object["access_token"])
-        print("-----------------------------")
 
         # Get customer profile 
         if "@" in json_object["access_token"]:
@@ -320,46 +327,6 @@ def customer_get_driver_location(request):
     return JsonResponse({
         'location': location
     })
-
-@csrf_exempt
-def create_payment_intent(request): 
-    """
-        params: 
-            1. access_token 
-            2. total 
-        return: 
-            {'client_secret': client_secret}
-    """
-
-    # Get access token 
-    access_token = AccessToken.objects.get(
-        token=request.POST["access_token"], 
-        expires__gt = timezone.now()
-    )
-
-    # Get the order's total amount 
-    total = request.POST['total']
-
-    if request.method == "POST": 
-        if access_token: 
-            # Create a Payment Intent: this will create a client secret and return it to Mobile app
-            try: 
-                intent = stripe.PaymentIntent.create( 
-                    amount = int(total) * 100, # Amount in cents 
-                    currency = 'usd', 
-                    description = 'FoodTasker Order'
-                ) 
-
-                if intent: 
-                    client_secret = intent.client_secret 
-                    return JsonResponse({'client_secret': client_secret})
-
-            except stripe.error.StripeError as e: 
-                return JsonResponse({'status': 'failed', 'error': str(e)})
-            except Exception as e: 
-                return JsonResponse({'status': 'failed', 'error': str(e)})
-    
-        return JsonResponse({'status': 'failed', 'error': 'Failed to create Payment Intent'})
 
 
 # =========

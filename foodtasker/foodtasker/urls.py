@@ -18,6 +18,11 @@ from django.urls import include, path
 from django.contrib.auth import views as auth_views
 from coreapp import views, apis
 
+from django.views.static import serve as mediaserve
+from django.conf.urls import url
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     # Web View - Admin
@@ -36,6 +41,7 @@ urlpatterns = [
     path('restaurant/meal/edit/<int:meal_id>', views.restaurant_edit_meal, name='restaurant_edit_meal'),
     path('restaurant/order/', views.restaurant_order, name='restaurant_order'),
     path('restaurant/report/', views.restaurant_report, name='restaurant_report'),
+    path('restaurant/map/', views.restaurant_map, name='restaurant_map'),
 
     # APIs
     # /convert-token (sign-in/sign-up), /revoke-token (sign-out)
@@ -54,10 +60,10 @@ urlpatterns = [
     path('api/customer/order/latest/', apis.customer_get_latest_order),
     path('api/customer/order/latest_status/', apis.customer_get_latest_order_status),
     path('api/customer/driver/location/', apis.customer_get_driver_location),
-    path('api/customer/payment_intent/', apis.create_payment_intent),
     path('api/customer/sendCode/<mail>/', apis.customer_sendCode),
     path('api/customer/resetPasswordSendCode/<mail>/', apis.customer_reset_sendCode),
     path('api/customer/resetPassword/<mail>/<password>/', apis.customer_reset_password),
+    path('api/customer/deleteAccount/', apis.customer_delete_account),
 
     # APIS for DRIVERS
     path('api/driver/order/ready/', apis.driver_get_ready_orders),
@@ -69,4 +75,9 @@ urlpatterns = [
     path('api/driver/profile/', apis.driver_get_profile),
     path('api/driver/profile/update/', apis.driver_update_profile),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if not settings.DEBUG:
+    urlpatterns += [
+        url(f'^{settings.STATIC_URL.lstrip("/")}(?P<path>.*)$', mediaserve, {'document_root': settings.STATIC_ROOT}),
+    ]

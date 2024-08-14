@@ -130,6 +130,10 @@ STATICFILES_DIR = [
     os.path.join(BASE_DIR, 'coreapp/static')
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
@@ -201,8 +205,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
-
-STRIPE_API_KEY = 'pk_test_51M9XgOGreo51K5AK7p8s8DeYbBn1r8ODjDTt9dN3nyxUrHXvSHn736PuBwYA884clY9fqdA2eFIjDS1KzAEmKvqj005AJ2lILn'
 
 # mail sender
 

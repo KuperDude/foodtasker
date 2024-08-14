@@ -1,7 +1,8 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm, CategoryForm, LoginUserForm
+from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm, CategoryForm, LoginUserForm, GeoJsonFileForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 
@@ -10,7 +11,7 @@ from django.contrib.auth.forms import (
     AuthenticationForm,
 )
 
-from .models import Meal, Order, Customer
+from .models import Meal, Order, Customer, GeoJsonFile
 from django.db.models import Sum, Count, Case, When
 from django.core.mail import EmailMessage
 
@@ -27,29 +28,20 @@ def restaurant_home(request):
 
 def restaurant_sign_up(request):
     user_form = UserForm()
-    # restaurant_form = RestaurantForm()
 
     if request.method == "POST":
         user_form = UserForm(request.POST)
-        # restaurant_form = RestaurantForm(request.POST, request.FILES)
 
         if user_form.is_valid():
             new_user = User.objects.create_user(**user_form.cleaned_data)
         
             email = EmailMessage('Subject', 'Body', to=[new_user.email])
             email.send()
-            # send_mail(
-            #     subject=_("Please conform registrations"),
-            #     message=_("follow this link"),
-            #     from_email="CucumberKiller20@yandex.ru",
-            #     recipient_list=[new_user.email, ]
-            # )
 
             return redirect(restaurant_home)
 
     return render(request, 'restaurant/sign_up.html', { 
         'user_form': user_form,
-        # 'restaurant_form': restaurant_form
     })
 
 @login_required(login_url='/restaurant/sign_in/')
@@ -127,6 +119,29 @@ def restaurant_order(request):
     return render(request, 'restaurant/order.html', {
         'orders': orders,
         'category_form': category_form
+    })
+
+@login_required(login_url='/restaurant/sign_in/')
+def restaurant_map(request):
+
+    geoFile = GeoJsonFile.objects.last()
+
+    if request.method == 'POST':
+        form = GeoJsonFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('restaurant_map')
+        else: 
+            return render(request, 'restaurant/map.html', {
+                'form':form,
+                'geoFile': geoFile,
+            })
+
+    form = GeoJsonFileForm()
+
+    return render(request, 'restaurant/map.html', {
+        'form':form,
+        'geoFile': geoFile,
     })
 
 @login_required(login_url='/restaurant/sign_in/')

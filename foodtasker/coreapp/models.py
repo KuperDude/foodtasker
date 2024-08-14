@@ -95,4 +95,11 @@ class OrderDetails(models.Model):
     def __str__(self):
         return str(self.id)
 
+class GeoJsonFile(models.Model):
+    file = models.FileField(upload_to='geojson/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"GeoJSON файл от {self.uploaded_at}"
+
         

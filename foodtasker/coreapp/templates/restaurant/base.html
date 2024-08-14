@@ -27,6 +27,8 @@
 {% url 'restaurant_order' as restaurant_order_url %}
 {% url 'restaurant_report' as restaurant_report_url %}
 {% url 'restaurant_account' as restaurant_account_url %}
+{% url 'restaurant_map' as restaurant_map_url %}
+
 
 <div class='text-center mt-4'>
     <img src="{{ request.user.restaurant.logo.url }}" class='rounded-circle' width='80' height='80' alt="">
@@ -48,6 +50,9 @@
     </a>
     <a href="{% url 'restaurant_report' %}" 
         class="list-group-item {% if request.path == restaurant_report_url %} active {% endif %}">Статистика</a>
+
+    <a href="{% url 'restaurant_map' %}" 
+        class="list-group-item {% if request.path == restaurant_map_url %} active {% endif %}">Карта Доставки</a>
 
     <span class="text-uppercase">ПРОФИЛЬ</span>
     <a href="{% url 'restaurant_account' %}" 

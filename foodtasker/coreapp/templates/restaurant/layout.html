@@ -11,19 +11,21 @@
   </head>
   <body>
     <div class="container-fluid">
-      <div class="row">
+      <div class="row d-flex">
           <div class="col-lg-2 col-md-2 col-sm-2 sidebar">
               {% block sidebar %}
               <!-- Display sidebar code here -->
               {% endblock %}
           </div>
-          <div class="col-lg-10 col-lg-offset-2 col-md-10 col-md-offset-2 col-sm-10 col-sm-offset-2 content">
+          <div class="col-lg-10 col-md-10 col-sm-10 content">
               {% block body %}
               <!-- Display body code here -->
               {% endblock %}
           </div>
       </div>
-    </div>
+  </div>
+  
+  
 
     <script 
       src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" 

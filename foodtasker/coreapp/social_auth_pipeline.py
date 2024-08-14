@@ -5,11 +5,7 @@ def create_user_by_type(backend, user, response, *args, **kwargs):
 
     if backend.name == 'vk-oauth2' or backend.name == 'google-oauth2':
         avatar = response.get('photo', '')
-
-        # print(user.id, avatar)
-
-        # for x in User.objects.all():
-        #     print(x.id)
+        
         if request['user_type'] == 'driver':
             Driver.objects.get_or_create(user_id=user.id, avatar=avatar)
         elif request['user_type'] == 'customer':
