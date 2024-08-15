@@ -33,7 +33,7 @@ class AccountForm(forms.ModelForm):
 class MealForm(forms.ModelForm):
     class Meta:
         model = Meal
-        exclude = ('restaurant',)
+        exclude = ('restaurants',)
 
 class CategoryForm(forms.ModelForm):
     class Meta:

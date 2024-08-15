@@ -2,6 +2,34 @@
 
 {% block title %} Блюда {% endblock %}
 
+{% block script %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.availability-checkbox').on('change', function() {
+            var mealId = $(this).data('meal-id');
+            var isChecked = $(this).is(':checked');
+
+            $.ajax({
+                url: "{% url 'toggle_meal_availability' %}",
+                method: "POST",
+                data: {
+                    'meal_id': mealId,
+                    'is_available': isChecked,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    alert('Статус обновлен');
+                },
+                error: function(xhr, status, error) {
+                    alert('Произошла ошибка');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
 {% block body %} 
     <div class='row'>
         <div class='col-md-10 offset-md-1'>
@@ -10,9 +38,11 @@
                     <h5 class='m-0 font-weight-bold text-black'>Блюда</h5>
                 </div>
                 <div class="card-body">
-                    <span class="float-right mb-3">
-                        <a href="{% url 'restaurant_add_meal' %}" class='btn btn-black'>Добавить Блюдо</a>
-                    </span>
+                    {% if request.user.cashier %}
+                        <span class="float-right mb-3">
+                            <a href="{% url 'restaurant_add_meal' %}" class='btn btn-black'>Добавить Блюдо</a>
+                        </span>
+                    {% endif %}
 
                     <table class="table table-striped table-hover table-bordered">
                         <thead>
@@ -22,31 +52,39 @@
                             <th scope="col">Описание</th>
                             <th scope="col">Ингредиенты</th>
                             <th scope="col">Категория</th>
+                            <th scope="col">Наличие товара</th>
                             <th scope="col">Цена</th>
                             <th scope="col">Изображение</th>
                           </tr>
                         </thead>
                         <tbody>
-                            {% for meal in meals %}
+                            {% for meal_data in meals %}
                                 <tr class='align-middle'>
-                                    <th scope="row">{{ meal.id }}</th>
+                                    <th scope="row">{{ meal_data.meal.id }}</th>
                                     <td>
-                                        <a href="{% url 'restaurant_edit_meal' meal.id %}">{{ meal.name }}</a>
+                                        {% if not request.user.cashier %}
+                                            <a href="{% url 'restaurant_edit_meal' meal_data.meal.id %}">{{ meal_data.meal.name }}</a>
+                                        {% else %}
+                                            {{ meal_data.meal.name }}
+                                        {% endif %}
                                     </td>
-                                    <td>{{ meal.short_description }}</td>
+                                    <td>{{ meal_data.meal.short_description }}</td>
                                     <td>
                                         <ul>
-                                            {% for ing in meal.ingredients.all %}
+                                            {% for ing in meal_data.meal.ingredients.all %}
                                                 <li>{{ ing.name }}</li>
                                             {% endfor %}
                                         </ul>
                                     </td>
-                                    <td>{{ meal.category.name }}</td>
+                                    <td>{{ meal_data.meal.category.name }}</td>
+                                    <td>
+                                        <input type="checkbox" class="availability-checkbox" data-meal-id="{{ meal_data.meal.id }}" {% if meal_data.is_available %}checked{% endif %}>
+                                    </td>                                    
                                     <td class='text-right'>
-                                        <font color="green">{{ meal.price }}₽</font>
+                                        <font color="green">{{ meal_data.price }}₽</font>
                                     </td>
                                     <td class='text-center'>
-                                        <img src="{{ meal.image.url }}" class='rounded' width='50' height='50' alt="">
+                                        <img src="{{ meal_data.meal.image.url }}" class='rounded' width='50' height='50' alt="">
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -54,6 +92,26 @@
                       </table>
                 </div>
             </div>
+            {% if not request.user.cashier %}
+            <div class="card shadow text-white mb-3 mt-3">
+                <div class="card-header text-center">
+                    <h5 class='m-0 font-weight-bold text-black'>Блюда без цены</h5>
+                </div>
+                <div class="card-body">
+                    {% if meals_without_price %}
+                        <ul class="list-group">
+                            {% for meal in meals_without_price %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'restaurant_edit_meal' meal.id %}">{{ meal.name }} - {{ meal.short_description }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center" style="color: black;">Все блюда имеют цену.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

@@ -21,6 +21,26 @@
                     </form>
                 </div>
             </div>
+            <div class="card shadow text-white mb-3 mt-3">
+                <div class="card-header text-center">
+                    <h5 class='m-0 font-weight-bold text-black'>Блюда без цены</h5>
+                </div>
+                <div class="card-body">
+                    {% if meals_without_price %}
+                        <ul class="list-group">
+                            {% for meal in meals_without_price %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'restaurant_edit_meal' meal.id %}">{{ meal.name }} - {{ meal.short_description }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center" style="color: black;">Все блюда имеют цену.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
+
+
 {% endblock %}

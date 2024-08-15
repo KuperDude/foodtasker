@@ -50,9 +50,19 @@ ymaps.ready(function () {
                     const legendItem = createLegendItem(color, description);
                     document.getElementById('legend-content').appendChild(legendItem);
                 } else if (obj.geometry.type === 'Point') {
-                    obj.options = {
-                        iconColor: obj.properties['marker-color'] || '#FF0000' // Красный по умолчанию
-                    };
+                    if (obj.properties.iconCaption == restaurantName) {
+                        obj.options = {
+                            iconColor: '#00FF00'
+                        };
+
+                        map.setCenter(obj.geometry.coordinates);
+                    } else {
+                        
+                        obj.options = {
+                            iconColor: obj.properties['marker-color'] || '#FF0000'
+                        };
+                    }
+                    
                 }
 
                 obj.properties.balloonContent = obj.properties.description;

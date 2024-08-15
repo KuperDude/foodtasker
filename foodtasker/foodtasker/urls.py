@@ -37,6 +37,7 @@ urlpatterns = [
 
     path('restaurant/account/', views.restaurant_account, name='restaurant_account'),
     path('restaurant/meal/', views.restaurant_meal, name='restaurant_meal'),
+    path('toggle_meal_availability/', views.toggle_meal_availability, name='toggle_meal_availability'),
     path('restaurant/meal/add', views.restaurant_add_meal, name='restaurant_add_meal'),
     path('restaurant/meal/edit/<int:meal_id>', views.restaurant_edit_meal, name='restaurant_edit_meal'),
     path('restaurant/order/', views.restaurant_order, name='restaurant_order'),

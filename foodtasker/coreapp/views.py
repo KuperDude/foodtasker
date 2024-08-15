@@ -1,6 +1,6 @@
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+
 from django.contrib.auth.decorators import login_required
 from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm, CategoryForm, LoginUserForm, GeoJsonFileForm
 from django.contrib.auth import authenticate, login
@@ -11,9 +11,12 @@ from django.contrib.auth.forms import (
     AuthenticationForm,
 )
 
-from .models import Meal, Order, Customer, GeoJsonFile
+from .models import Meal, Order, Customer, GeoJsonFile, Restaurant, RestaurantMeal
 from django.db.models import Sum, Count, Case, When
 from django.core.mail import EmailMessage
+
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 class LoginUser(LoginView):
     form_class = LoginUserForm
@@ -65,41 +68,100 @@ def restaurant_account(request):
 
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_meal(request):
-    meals = Meal.objects.filter(restaurant=request.user.restaurant).order_by('-id')
+    restaurant = request.user.restaurant
+    restaurant_meals = RestaurantMeal.objects.filter(restaurant=restaurant).select_related('meal').order_by('-id')
+    meals_data = []
+    for restaurant_meal in restaurant_meals:
+        meal_data = {
+            'meal': restaurant_meal.meal,
+            'price': restaurant_meal.price,
+            'is_available': restaurant_meal.is_available,
+        }
+        meals_data.append(meal_data)
+
+    meals_without_price = Meal.objects.exclude(restaurantmeal__restaurant=restaurant)
+
     return render(request, 'restaurant/meal.html', {
-        'meals': meals
+        'meals': meals_data,
+        'meals_without_price': meals_without_price
     })
+
+@require_POST
+@csrf_exempt
+def toggle_meal_availability(request):
+    meal_id = request.POST.get('meal_id')
+    is_available = request.POST.get('is_available') == 'true'
+    restaurant = request.user.restaurant
+    
+    meal = get_object_or_404(Meal, id=meal_id)
+    restaurant_meal, created = RestaurantMeal.objects.get_or_create(
+        restaurant=restaurant,
+        meal=meal
+    )
+
+    try:
+        restaurant_meal.is_available = is_available
+        restaurant_meal.save()
+        return JsonResponse({'success': True})
+    except Meal.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Meal not found'}, status=404)
+
 
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_add_meal(request):
+    restaurant = request.user.restaurant
 
     if request.method == "POST":
         meal_form = MealForm(request.POST, request.FILES)
 
         if meal_form.is_valid():
             meal = meal_form.save(commit=False)
-            meal.restaurant = request.user.restaurant
+            meal.restaurant = restaurant
             meal.save()
+            price = meal.price
+            RestaurantMeal.objects.create(
+                meal=meal,
+                restaurant=restaurant,
+                price=price
+            )
             return redirect(restaurant_meal)
+
+    # Получаем все блюда, которым ещё не добавили цену для текущего ресторана
+    meals_without_price = Meal.objects.exclude(restaurantmeal__restaurant=restaurant)
 
     meal_form = MealForm()
     return render(request, 'restaurant/add_meal.html', {
-        'meal_form': meal_form
+        'meal_form': meal_form,
+        'meals_without_price': meals_without_price
     })
 
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_edit_meal(request, meal_id):
+    restaurant = request.user.restaurant
+    
+    meal = get_object_or_404(Meal, id=meal_id)
+    restaurant_meal, created = RestaurantMeal.objects.get_or_create(
+        restaurant=restaurant,
+        meal=meal
+    )
 
     if request.method == "POST":
         meal_form = MealForm(request.POST, request.FILES, instance=Meal.objects.get(id=meal_id))
 
         if meal_form.is_valid():
             meal_form.save()
-            return redirect(restaurant_meal)
 
-    meal_form = MealForm(instance=Meal.objects.get(id=meal_id))
+            price = meal.price
+            restaurant_meal.price = price
+            restaurant_meal.save()
+            return redirect('restaurant_meal')
+
+    meals_without_price = Meal.objects.exclude(restaurantmeal__restaurant=restaurant).exclude(id=meal_id)
+
+    meal_form = MealForm(instance=meal)
     return render(request, 'restaurant/edit_meal.html', {
-        'meal_form': meal_form
+        'meal_form': meal_form,
+        'meals_without_price': meals_without_price
     })
 
 @login_required(login_url='/restaurant/sign_in/')
@@ -123,7 +185,6 @@ def restaurant_order(request):
 
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_map(request):
-
     geoFile = GeoJsonFile.objects.last()
 
     if request.method == 'POST':
@@ -135,6 +196,7 @@ def restaurant_map(request):
             return render(request, 'restaurant/map.html', {
                 'form':form,
                 'geoFile': geoFile,
+                'restaurantName': request.user.restaurant.name,
             })
 
     form = GeoJsonFileForm()
@@ -142,6 +204,7 @@ def restaurant_map(request):
     return render(request, 'restaurant/map.html', {
         'form':form,
         'geoFile': geoFile,
+        'restaurantName': request.user.restaurant.name,
     })
 
 @login_required(login_url='/restaurant/sign_in/')
@@ -169,7 +232,7 @@ def restaurant_report(request):
 
     # Getting Top 3 Meals
 
-    top3_meals = Meal.objects.filter(restaurant = request.user.restaurant)\
+    top3_meals = Meal.objects.filter(restaurants__in=[request.user.restaurant])\
         .annotate(total_order = Sum('orderdetails__quantity'))\
         .order_by('-total_order')[:3]
 
