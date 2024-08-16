@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 
 from django.contrib.auth.decorators import login_required
 from coreapp.forms import UserForm, MealForm, RestaurantForm, AccountForm, CategoryForm, LoginUserForm, GeoJsonFileForm
@@ -21,6 +22,12 @@ from django.views.decorators.csrf import csrf_exempt
 class LoginUser(LoginView):
     form_class = LoginUserForm
 
+    def get_success_url(self):
+        # Определите URL на основе условий
+        if hasattr(self.request.user, 'driver'):
+            return reverse_lazy('restaurant_driver')  # Имя URL для водителя
+        else:
+            return reverse_lazy('restaurant_home')
 
 def home(request):
     return redirect(restaurant_home)
@@ -28,6 +35,10 @@ def home(request):
 @login_required(login_url='/restaurant/sign_in/')
 def restaurant_home(request):
     return render(request, 'restaurant/home.html', {})
+
+@login_required(login_url='/restaurant/sign_in/')
+def restaurant_driver(request):
+    return render(request, 'restaurant/driver.html', {})
 
 def restaurant_sign_up(request):
     user_form = UserForm()

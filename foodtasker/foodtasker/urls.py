@@ -34,6 +34,7 @@ urlpatterns = [
     path('restaurant/sign_out/', auth_views.LogoutView.as_view(next_page='/'), name='restaurant_sign_out'),
     path('restaurant/sign_up/', views.restaurant_sign_up, name='restaurant_sign_up'),
     path('restaurant/', views.restaurant_home, name='restaurant_home'),
+    path('restaurant/driver', views.restaurant_driver, name='restaurant_driver'),
 
     path('restaurant/account/', views.restaurant_account, name='restaurant_account'),
     path('restaurant/meal/', views.restaurant_meal, name='restaurant_meal'),
